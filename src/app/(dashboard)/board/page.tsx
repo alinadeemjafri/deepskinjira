@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useEpics } from '@/lib/hooks'
+import { useEpics } from '@/context/EpicsContext'
 import type { Epic, Story, Status } from '@/lib/types'
 import { STATUS_LABELS, STATUS_COLORS, PRIORITY_COLORS, PRIORITY_LABELS } from '@/lib/types'
 import ItemModal from '@/components/ItemModal'
