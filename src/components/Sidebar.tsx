@@ -24,7 +24,7 @@ export default function Sidebar({ user, view, setView }: Props) {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-12 bg-navy text-cream-light flex items-center px-4 sm:px-6 z-40">
+    <header className="h-12 shrink-0 bg-navy text-cream-light flex items-center px-4 sm:px-6 z-40">
       {/* Logo */}
       <h1 className="text-sm font-bold tracking-widest font-serif shrink-0 mr-6 sm:mr-10">
         DEEP SKIN
