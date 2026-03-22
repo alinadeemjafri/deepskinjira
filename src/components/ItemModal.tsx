@@ -22,7 +22,6 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
   const [startDate, setStartDate] = useState(item.startDate?.split('T')[0] || '')
   const [endDate, setEndDate] = useState(item.endDate?.split('T')[0] || '')
   const [epicId, setEpicId] = useState(item.type === 'story' ? item.epicId : '')
-  const [storyPoints, setStoryPoints] = useState(item.type === 'story' ? (item.storyPoints ?? '') : '')
   const [color, setColor] = useState(item.type === 'epic' ? item.color : '')
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [loadingAttachments, setLoadingAttachments] = useState(true)
@@ -64,7 +63,6 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
     if (isEpic) body.color = color
     if (!isEpic) {
       body.epicId = epicId
-      body.storyPoints = storyPoints ? Number(storyPoints) : null
     }
     await fetch(endpoint, {
       method: 'PATCH',
@@ -316,21 +314,6 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
                     <option key={ep.id} value={ep.id}>{ep.title}</option>
                   ))}
                 </select>
-              </div>
-            )}
-
-            {/* Story Points (for stories) */}
-            {!isEpic && (
-              <div>
-                <label className="block text-xs font-semibold text-taupe uppercase tracking-wider mb-1.5">Story Points</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={storyPoints}
-                  onChange={(e) => setStoryPoints(e.target.value)}
-                  placeholder="—"
-                  className="w-full px-3 py-2 rounded-lg border border-taupe-light bg-white text-sm text-near-black focus:outline-none focus:ring-2 focus:ring-navy"
-                />
               </div>
             )}
 

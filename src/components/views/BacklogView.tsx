@@ -127,11 +127,6 @@ export default function BacklogView() {
                           <span className={`text-[10px] px-2 py-0.5 rounded-full hidden sm:inline ${PRIORITY_COLORS[story.priority]}`}>
                             {PRIORITY_LABELS[story.priority]}
                           </span>
-                          {story.storyPoints && (
-                            <span className="text-[10px] text-taupe border border-taupe-light rounded px-1.5 py-0.5 hidden sm:inline">
-                              {story.storyPoints} SP
-                            </span>
-                          )}
                           {story.assignee && (
                             <div className="w-6 h-6 rounded-full bg-green text-white flex items-center justify-center text-[10px] font-bold">
                               {story.assignee[0]}
