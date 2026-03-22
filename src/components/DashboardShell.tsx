@@ -14,9 +14,9 @@ export default function DashboardShell({ user }: { user: string }) {
 
   return (
     <EpicsProvider>
-      <div className="flex h-screen overflow-hidden bg-cream-light">
+      <div className="h-screen overflow-hidden bg-cream-light flex flex-col">
         <Sidebar user={user} view={view} setView={setView} />
-        <main className="flex-1 overflow-auto p-4 pt-18 md:p-6 md:pt-6">
+        <main className="flex-1 overflow-auto p-4 sm:p-6 pt-16">
           {view === 'board' && <BoardView />}
           {view === 'backlog' && <BacklogView />}
           {view === 'timeline' && <TimelineView />}
