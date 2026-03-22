@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   const epics = await prisma.epic.findMany({
-    include: { stories: true, attachments: true },
+    include: {
+      stories: { orderBy: { createdAt: 'desc' } },
+      attachments: false,
+    },
     orderBy: { createdAt: 'desc' },
   })
   return NextResponse.json(epics)

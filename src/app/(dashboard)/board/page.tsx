@@ -10,7 +10,7 @@ import CreateModal from '@/components/CreateModal'
 const STATUSES: Status[] = ['TODO', 'IN_PROGRESS', 'IN_REVIEW', 'DONE']
 
 export default function BoardPage() {
-  const { epics, loading, refresh } = useEpics()
+  const { epics, loading, refresh, updateStoryStatus } = useEpics()
   const [selectedItem, setSelectedItem] = useState<{ item: Epic | Story; type: 'epic' | 'story' } | null>(null)
   const [creating, setCreating] = useState<{ type: 'epic' | 'story'; epicId?: string } | null>(null)
   const [filterEpic, setFilterEpic] = useState<string>('all')
@@ -35,13 +35,8 @@ export default function BoardPage() {
     })
   })
 
-  async function handleDrop(storyId: string, newStatus: Status) {
-    await fetch(`/api/stories/${storyId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
-    })
-    refresh()
+  function handleDrop(storyId: string, newStatus: Status) {
+    updateStoryStatus(storyId, newStatus)
   }
 
   return (
