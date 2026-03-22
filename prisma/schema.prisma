@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Epic {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  status      Status   @default(TODO)
+  priority    Priority @default(MEDIUM)
+  assignee    String?
+  startDate   DateTime?
+  endDate     DateTime?
+  color       String   @default("#3C2415")
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  stories     Story[]
+  attachments Attachment[]
+}
+
+model Story {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  status      Status   @default(TODO)
+  priority    Priority @default(MEDIUM)
+  assignee    String?
+  storyPoints Int?
+  startDate   DateTime?
+  endDate     DateTime?
+  epicId      String
+  epic        Epic     @relation(fields: [epicId], references: [id], onDelete: Cascade)
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  attachments Attachment[]
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  size      Int
+  mimeType  String
+  epicId    String?
+  epic      Epic?    @relation(fields: [epicId], references: [id], onDelete: Cascade)
+  storyId   String?
+  story     Story?   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
