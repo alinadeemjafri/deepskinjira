@@ -61,27 +61,29 @@ export default function TimelinePage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-near-black">Timeline</h1>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setWeeksOffset((o) => o - 4)}
-            className="px-3 py-2 text-sm border border-taupe-light rounded-lg hover:bg-cream transition cursor-pointer"
-          >
-            &larr; Earlier
-          </button>
-          <button
-            onClick={() => setWeeksOffset(0)}
-            className="px-3 py-2 text-sm border border-taupe-light rounded-lg hover:bg-cream transition cursor-pointer"
-          >
-            Today
-          </button>
-          <button
-            onClick={() => setWeeksOffset((o) => o + 4)}
-            className="px-3 py-2 text-sm border border-taupe-light rounded-lg hover:bg-cream transition cursor-pointer"
-          >
-            Later &rarr;
-          </button>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-near-black">Timeline</h1>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setWeeksOffset((o) => o - 4)}
+              className="px-2 sm:px-3 py-2 text-sm border border-taupe-light rounded-lg hover:bg-cream transition cursor-pointer"
+            >
+              &larr;
+            </button>
+            <button
+              onClick={() => setWeeksOffset(0)}
+              className="px-2 sm:px-3 py-2 text-sm border border-taupe-light rounded-lg hover:bg-cream transition cursor-pointer"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setWeeksOffset((o) => o + 4)}
+              className="px-2 sm:px-3 py-2 text-sm border border-taupe-light rounded-lg hover:bg-cream transition cursor-pointer"
+            >
+              &rarr;
+            </button>
+          </div>
           <button
             onClick={() => setCreating({ type: 'epic' })}
             className="px-4 py-2 text-sm bg-navy text-cream-light rounded-lg hover:bg-navy-light transition cursor-pointer"
@@ -97,7 +99,8 @@ export default function TimelinePage() {
           <p className="text-sm">Create your first epic with dates to see the timeline</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-cream-dark overflow-hidden">
+        <div className="bg-white rounded-xl border border-cream-dark overflow-x-auto">
+          <div className="min-w-[800px]">
           {/* Header with weeks */}
           <div className="flex border-b border-cream-dark">
             <div className="w-64 shrink-0 px-4 py-3 bg-cream-light border-r border-cream-dark">
@@ -186,6 +189,7 @@ export default function TimelinePage() {
               ))}
             </div>
           ))}
+          </div>
         </div>
       )}
 

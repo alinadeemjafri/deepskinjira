@@ -64,10 +64,10 @@ export default function CreateModal({ type, epics, defaultEpicId, onClose, onCre
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end md:items-start justify-center md:pt-20 md:px-4" onClick={onClose}>
       <div className="fixed inset-0 bg-black/40" />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-        <div className="border-b border-cream-dark px-6 py-4 flex items-center justify-between">
+      <div className="relative bg-white w-full h-full md:h-auto md:rounded-xl shadow-2xl md:max-w-lg overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="border-b border-cream-dark px-4 sm:px-6 py-4 flex items-center justify-between">
           <h2 className="text-lg font-serif font-bold text-near-black">
             Create {type === 'epic' ? 'Epic' : 'Story'}
           </h2>
@@ -77,7 +77,7 @@ export default function CreateModal({ type, epics, defaultEpicId, onClose, onCre
             </svg>
           </button>
         </div>
-        <form onSubmit={handleCreate} className="p-6 space-y-4">
+        <form onSubmit={handleCreate} className="p-4 sm:p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Title *</label>
             <input

@@ -29,8 +29,8 @@ export default function BacklogPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-near-black">Backlog</h1>
-        <div className="flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold text-near-black">Backlog</h1>
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setCreating({ type: 'epic' })}
             className="px-4 py-2 text-sm bg-navy text-cream-light rounded-lg hover:bg-navy-light transition cursor-pointer"
@@ -64,7 +64,7 @@ export default function BacklogPage() {
               <div key={epic.id} className="bg-white rounded-xl border border-cream-dark overflow-hidden">
                 {/* Epic row */}
                 <div
-                  className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-cream-light transition"
+                  className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-3 sm:py-4 cursor-pointer hover:bg-cream-light transition"
                   onClick={() => toggleEpic(epic.id)}
                 >
                   <svg
@@ -83,10 +83,10 @@ export default function BacklogPage() {
                   >
                     {epic.title}
                   </span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[epic.status]}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full hidden sm:inline ${STATUS_COLORS[epic.status]}`}>
                     {STATUS_LABELS[epic.status]}
                   </span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${PRIORITY_COLORS[epic.priority]}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full hidden sm:inline ${PRIORITY_COLORS[epic.priority]}`}>
                     {PRIORITY_LABELS[epic.priority]}
                   </span>
                   {epic.assignee && (
@@ -94,11 +94,11 @@ export default function BacklogPage() {
                       {epic.assignee[0]}
                     </div>
                   )}
-                  <span className="text-xs text-taupe ml-2">
-                    {doneCount}/{totalCount} stories
+                  <span className="text-xs text-taupe ml-1 sm:ml-2 shrink-0">
+                    {doneCount}/{totalCount}
                   </span>
                   {totalCount > 0 && (
-                    <div className="w-20 h-1.5 bg-cream-dark rounded-full overflow-hidden">
+                    <div className="w-12 sm:w-20 h-1.5 bg-cream-dark rounded-full overflow-hidden shrink-0">
                       <div
                         className="h-full bg-green rounded-full transition-all"
                         style={{ width: `${(doneCount / totalCount) * 100}%` }}
@@ -116,19 +116,19 @@ export default function BacklogPage() {
                       epic.stories.map((story) => (
                         <div
                           key={story.id}
-                          className="flex items-center gap-3 px-12 py-3 border-b border-cream-light last:border-b-0 hover:bg-cream-light transition cursor-pointer"
+                          className="flex items-center gap-2 sm:gap-3 px-6 sm:px-12 py-3 border-b border-cream-light last:border-b-0 hover:bg-cream-light transition cursor-pointer"
                           onClick={() => setSelectedItem({ item: story, type: 'story' })}
                         >
                           <StatusDot status={story.status} />
                           <span className="text-sm text-near-black flex-1">{story.title}</span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${STATUS_COLORS[story.status]}`}>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full hidden sm:inline ${STATUS_COLORS[story.status]}`}>
                             {STATUS_LABELS[story.status]}
                           </span>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full ${PRIORITY_COLORS[story.priority]}`}>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full hidden sm:inline ${PRIORITY_COLORS[story.priority]}`}>
                             {PRIORITY_LABELS[story.priority]}
                           </span>
                           {story.storyPoints && (
-                            <span className="text-[10px] text-taupe border border-taupe-light rounded px-1.5 py-0.5">
+                            <span className="text-[10px] text-taupe border border-taupe-light rounded px-1.5 py-0.5 hidden sm:inline">
                               {story.storyPoints} SP
                             </span>
                           )}
@@ -140,7 +140,7 @@ export default function BacklogPage() {
                         </div>
                       ))
                     )}
-                    <div className="px-12 py-2 border-t border-cream-light">
+                    <div className="px-6 sm:px-12 py-2 border-t border-cream-light">
                       <button
                         onClick={() => setCreating({ type: 'story', epicId: epic.id })}
                         className="text-sm text-taupe hover:text-navy transition cursor-pointer"

@@ -46,9 +46,9 @@ export default function BoardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-near-black">Board</h1>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-near-black">Board</h1>
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <select
             value={filterEpic}
             onChange={(e) => setFilterEpic(e.target.value)}
@@ -93,11 +93,11 @@ export default function BoardPage() {
       </div>
 
       {/* Kanban columns */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="flex overflow-x-auto gap-4 pb-4 md:grid md:grid-cols-4 md:overflow-x-visible md:pb-0">
         {STATUSES.map((status) => (
           <div
             key={status}
-            className="bg-cream rounded-xl p-4 min-h-[300px]"
+            className="bg-cream rounded-xl p-4 min-h-[300px] min-w-[280px] md:min-w-0 shrink-0 md:shrink"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               const storyId = e.dataTransfer.getData('storyId')

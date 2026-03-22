@@ -79,13 +79,13 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end md:items-start justify-center md:pt-16 md:px-4" onClick={onClose}>
       <div className="fixed inset-0 bg-black/40" />
       <div
-        className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto"
+        className="relative bg-white w-full h-full md:h-auto md:rounded-xl shadow-2xl md:max-w-2xl md:max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white border-b border-cream-dark px-6 py-4 flex items-center justify-between rounded-t-xl z-10">
+        <div className="sticky top-0 bg-white border-b border-cream-dark px-4 sm:px-6 py-4 flex items-center justify-between md:rounded-t-xl z-10">
           <h2 className="text-xl font-serif font-bold text-near-black">
             {isEpic ? 'Epic' : 'Story'} Details
           </h2>
@@ -104,7 +104,7 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
           </div>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-4 sm:p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-near-black mb-1">Title</label>
             <input
@@ -266,7 +266,7 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-cream-dark px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+        <div className="sticky bottom-0 bg-white border-t border-cream-dark px-4 sm:px-6 py-4 flex justify-end gap-3 md:rounded-b-xl">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm rounded-lg border border-taupe-light text-near-black hover:bg-cream transition cursor-pointer"
