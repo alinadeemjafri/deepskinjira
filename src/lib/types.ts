@@ -27,7 +27,7 @@ export interface Story {
   createdBy: string
   createdAt: string
   updatedAt: string
-  attachments: Attachment[]
+  attachments?: Attachment[]
 }
 
 export interface Epic {
@@ -44,7 +44,7 @@ export interface Epic {
   createdAt: string
   updatedAt: string
   stories: Story[]
-  attachments: Attachment[]
+  attachments?: Attachment[]
 }
 
 export const STATUS_LABELS: Record<Status, string> = {
