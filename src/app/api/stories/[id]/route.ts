@@ -5,7 +5,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params
   const story = await prisma.story.findUnique({
     where: { id },
-    include: { epic: true, attachments: true },
+    include: { epic: true, attachments: true, subtasks: { orderBy: { order: 'asc' } } },
   })
   if (!story) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(story)

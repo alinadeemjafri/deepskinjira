@@ -12,6 +12,15 @@ export interface Attachment {
   createdAt: string
 }
 
+export interface SubTask {
+  id: string
+  title: string
+  done: boolean
+  order: number
+  storyId: string
+  createdAt: string
+}
+
 export interface Story {
   id: string
   title: string

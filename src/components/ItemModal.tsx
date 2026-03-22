@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import type { Epic, Story, Status, Priority, Attachment } from '@/lib/types'
+import type { Epic, Story, Status, Priority, Attachment, SubTask } from '@/lib/types'
 import { STATUS_LABELS, PRIORITY_LABELS, EPIC_COLORS, STATUS_COLORS, PRIORITY_COLORS } from '@/lib/types'
 
 type Item = (Epic & { type: 'epic' }) | (Story & { type: 'story' })
@@ -24,7 +24,9 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
   const [epicId, setEpicId] = useState(item.type === 'story' ? item.epicId : '')
   const [color, setColor] = useState(item.type === 'epic' ? item.color : '')
   const [attachments, setAttachments] = useState<Attachment[]>([])
-  const [loadingAttachments, setLoadingAttachments] = useState(true)
+  const [subtasks, setSubtasks] = useState<SubTask[]>([])
+  const [newSubtask, setNewSubtask] = useState('')
+  const [loadingDetails, setLoadingDetails] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
@@ -34,16 +36,17 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
   const isEpic = item.type === 'epic'
   const endpoint = isEpic ? `/api/epics/${item.id}` : `/api/stories/${item.id}`
 
-  // Fetch full item with attachments on mount
+  // Fetch full item with attachments + subtasks on mount
   useEffect(() => {
     async function fetchDetails() {
       const res = await fetch(endpoint)
       const data = await res.json()
       setAttachments(data.attachments || [])
-      setLoadingAttachments(false)
+      if (!isEpic) setSubtasks(data.subtasks || [])
+      setLoadingDetails(false)
     }
     fetchDetails()
-  }, [endpoint])
+  }, [endpoint, isEpic])
 
   useEffect(() => {
     if (editingTitle && titleRef.current) {
@@ -100,6 +103,34 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
     await fetch(`/api/attachments/${id}`, { method: 'DELETE' })
   }
 
+  async function handleAddSubtask(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newSubtask.trim()) return
+    const res = await fetch('/api/subtasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newSubtask.trim(), storyId: item.id }),
+    })
+    const created = await res.json()
+    setSubtasks((prev) => [...prev, created])
+    setNewSubtask('')
+  }
+
+  async function handleToggleSubtask(id: string, done: boolean) {
+    setSubtasks((prev) => prev.map((s) => s.id === id ? { ...s, done } : s))
+    await fetch(`/api/subtasks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done }),
+    })
+  }
+
+  async function handleDeleteSubtask(id: string) {
+    setSubtasks((prev) => prev.filter((s) => s.id !== id))
+    await fetch(`/api/subtasks/${id}`, { method: 'DELETE' })
+  }
+
+  const doneCount = subtasks.filter((s) => s.done).length
   const epicForStory = !isEpic && epics ? epics.find((e) => e.id === epicId) : null
 
   return (
@@ -178,12 +209,75 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
               />
             </div>
 
+            {/* Sub-tasks (stories only) */}
+            {!isEpic && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-semibold text-taupe uppercase tracking-wider">
+                    Sub-tasks {subtasks.length > 0 && `(${doneCount}/${subtasks.length})`}
+                  </label>
+                </div>
+                {subtasks.length > 0 && (
+                  <>
+                    <div className="w-full h-1.5 bg-cream-dark rounded-full overflow-hidden mb-3">
+                      <div
+                        className="h-full bg-green rounded-full transition-all duration-300"
+                        style={{ width: `${subtasks.length > 0 ? (doneCount / subtasks.length) * 100 : 0}%` }}
+                      />
+                    </div>
+                    <div className="space-y-1 mb-3">
+                      {subtasks.map((st) => (
+                        <div key={st.id} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-cream transition group">
+                          <input
+                            type="checkbox"
+                            checked={st.done}
+                            onChange={(e) => handleToggleSubtask(st.id, e.target.checked)}
+                            className="w-4 h-4 rounded border-taupe accent-green cursor-pointer shrink-0"
+                          />
+                          <span className={`text-sm flex-1 ${st.done ? 'line-through text-taupe' : 'text-near-black'}`}>
+                            {st.title}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteSubtask(st.id)}
+                            className="text-taupe hover:text-red-500 transition cursor-pointer opacity-0 group-hover:opacity-100"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {loadingDetails ? (
+                  <p className="text-sm text-taupe">Loading...</p>
+                ) : (
+                  <form onSubmit={handleAddSubtask} className="flex gap-2">
+                    <input
+                      value={newSubtask}
+                      onChange={(e) => setNewSubtask(e.target.value)}
+                      placeholder="Add a sub-task..."
+                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-taupe-light bg-cream-light text-near-black focus:outline-none focus:ring-2 focus:ring-navy placeholder:text-taupe"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newSubtask.trim()}
+                      className="px-3 py-2 text-sm bg-navy text-cream-light rounded-lg hover:bg-navy-light transition cursor-pointer disabled:opacity-30"
+                    >
+                      Add
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
+
             {/* Attachments */}
             <div>
               <label className="block text-xs font-semibold text-taupe uppercase tracking-wider mb-2">
-                Attachments {!loadingAttachments && attachments.length > 0 && `(${attachments.length})`}
+                Attachments {!loadingDetails && attachments.length > 0 && `(${attachments.length})`}
               </label>
-              {loadingAttachments ? (
+              {loadingDetails ? (
                 <p className="text-sm text-taupe">Loading...</p>
               ) : (
                 <>

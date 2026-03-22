@@ -54,6 +54,17 @@ model Story {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   attachments Attachment[]
+  subtasks    SubTask[]
+}
+
+model SubTask {
+  id        String   @id @default(cuid())
+  title     String
+  done      Boolean  @default(false)
+  order     Int      @default(0)
+  storyId   String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
 
 model Attachment {
