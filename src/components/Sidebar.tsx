@@ -1,26 +1,33 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import type { View } from '@/components/DashboardShell'
 
-const navItems = [
-  { href: '/board', label: 'Board', icon: BoardIcon },
-  { href: '/backlog', label: 'Backlog', icon: BacklogIcon },
-  { href: '/timeline', label: 'Timeline', icon: TimelineIcon },
+const navItems: { view: View; label: string; icon: () => React.ReactNode }[] = [
+  { view: 'board', label: 'Board', icon: BoardIcon },
+  { view: 'backlog', label: 'Backlog', icon: BacklogIcon },
+  { view: 'timeline', label: 'Timeline', icon: TimelineIcon },
 ]
 
-export default function Sidebar({ user }: { user: string }) {
-  const pathname = usePathname()
+interface Props {
+  user: string
+  view: View
+  setView: (v: View) => void
+}
+
+export default function Sidebar({ user, view, setView }: Props) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-
-  // Close sidebar on route change
-  useEffect(() => { setOpen(false) }, [pathname])
 
   function handleLogout() {
     document.cookie = 'ds-user=; path=/; max-age=0'
     router.push('/login')
+  }
+
+  function handleNav(v: View) {
+    setView(v)
+    setOpen(false)
   }
 
   return (
@@ -59,12 +66,12 @@ export default function Sidebar({ user }: { user: string }) {
 
         <nav className="flex-1 py-4">
           {navItems.map((item) => {
-            const active = pathname === item.href
+            const active = view === item.view
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors ${
+              <button
+                key={item.view}
+                onClick={() => handleNav(item.view)}
+                className={`flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors w-full text-left cursor-pointer ${
                   active
                     ? 'bg-navy-light text-cream-light'
                     : 'text-taupe hover:text-cream-light hover:bg-navy-light/50'
@@ -72,7 +79,7 @@ export default function Sidebar({ user }: { user: string }) {
               >
                 <item.icon />
                 {item.label}
-              </Link>
+              </button>
             )
           })}
         </nav>
