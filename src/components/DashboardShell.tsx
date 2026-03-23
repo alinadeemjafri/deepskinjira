@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar'
 import BoardView from '@/components/views/BoardView'
 import BacklogView from '@/components/views/BacklogView'
 import TimelineView from '@/components/views/TimelineView'
+import ChatPanel from '@/components/ChatPanel'
 
 export type View = 'board' | 'backlog' | 'timeline'
 
@@ -21,6 +22,7 @@ export default function DashboardShell({ user }: { user: string }) {
           {view === 'backlog' && <BacklogView />}
           {view === 'timeline' && <TimelineView />}
         </main>
+        <ChatPanel user={user} />
       </div>
     </EpicsProvider>
   )
