@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import type { Epic, Story, Status, Priority, Attachment, SubTask } from '@/lib/types'
+import type { Epic, Story, Status, Priority, Attachment, SubTask, Comment, ItemLink } from '@/lib/types'
 import { STATUS_LABELS, PRIORITY_LABELS, EPIC_COLORS, STATUS_COLORS, PRIORITY_COLORS } from '@/lib/types'
 
 type Item = (Epic & { type: 'epic' }) | (Story & { type: 'story' })
@@ -26,12 +26,21 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [subtasks, setSubtasks] = useState<SubTask[]>([])
   const [newSubtask, setNewSubtask] = useState('')
+  const [comments, setComments] = useState<Comment[]>([])
+  const [newComment, setNewComment] = useState('')
+  const [postingComment, setPostingComment] = useState(false)
+  const [links, setLinks] = useState<ItemLink[]>([])
+  const [linkTarget, setLinkTarget] = useState('')
   const [loadingDetails, setLoadingDetails] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editingTitle, setEditingTitle] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const titleRef = useRef<HTMLInputElement>(null)
+
+  const currentUser = typeof document !== 'undefined'
+    ? document.cookie.split(';').find(c => c.trim().startsWith('ds-user='))?.split('=')[1] ?? 'Unknown'
+    : 'Unknown'
 
   const isEpic = item.type === 'epic'
   const endpoint = isEpic ? `/api/epics/${item.id}` : `/api/stories/${item.id}`
@@ -43,6 +52,8 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
       const data = await res.json()
       setAttachments(data.attachments || [])
       if (!isEpic) setSubtasks(data.subtasks || [])
+      setComments(data.comments || [])
+      setLinks(data.links || [])
       setLoadingDetails(false)
     }
     fetchDetails()
@@ -129,6 +140,77 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
     setSubtasks((prev) => prev.filter((s) => s.id !== id))
     await fetch(`/api/subtasks/${id}`, { method: 'DELETE' })
   }
+
+  async function handlePostComment(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newComment.trim()) return
+    setPostingComment(true)
+    const body: Record<string, unknown> = { content: newComment.trim(), author: currentUser }
+    if (isEpic) body.epicId = item.id
+    else body.storyId = item.id
+    const res = await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const created = await res.json()
+    setComments((prev) => [...prev, created])
+    setNewComment('')
+    setPostingComment(false)
+  }
+
+  async function handleDeleteComment(id: string) {
+    setComments((prev) => prev.filter((c) => c.id !== id))
+    await fetch(`/api/comments/${id}`, { method: 'DELETE' })
+  }
+
+  async function handleAddLink(e: React.FormEvent) {
+    e.preventDefault()
+    if (!linkTarget) return
+    const [targetType, targetId] = linkTarget.split(':')
+    const res = await fetch('/api/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sourceType: item.type,
+        sourceId: item.id,
+        targetType,
+        targetId,
+      }),
+    })
+    const created = await res.json()
+    setLinks((prev) => [...prev, created])
+    setLinkTarget('')
+  }
+
+  async function handleRemoveLink(id: string) {
+    setLinks((prev) => prev.filter((l) => l.id !== id))
+    await fetch(`/api/links/${id}`, { method: 'DELETE' })
+  }
+
+  // Resolve a link to the item on the other end
+  function resolveLinkedItem(link: ItemLink) {
+    const linkedId = link.sourceId === item.id ? link.targetId : link.sourceId
+    const linkedType = link.sourceId === item.id ? link.targetType : link.sourceType
+    if (linkedType === 'epic') {
+      const epic = epics?.find((e) => e.id === linkedId)
+      return epic ? { id: epic.id, title: epic.title, type: 'epic' as const, color: epic.color } : null
+    } else {
+      for (const epic of (epics || [])) {
+        const story = epic.stories.find((s) => s.id === linkedId)
+        if (story) return { id: story.id, title: story.title, type: 'story' as const, color: epic.color }
+      }
+    }
+    return null
+  }
+
+  // All linkable items (epics + stories) excluding the current item
+  const linkableItems = epics
+    ? [
+        ...epics.filter((e) => e.id !== item.id).map((e) => ({ type: 'epic', id: e.id, title: e.title, color: e.color, groupLabel: 'Epics' })),
+        ...(epics.flatMap((e) => e.stories.filter((s) => s.id !== item.id).map((s) => ({ type: 'story', id: s.id, title: s.title, color: e.color, groupLabel: e.title })))),
+      ]
+    : []
 
   const doneCount = subtasks.filter((s) => s.done).length
   const epicForStory = !isEpic && epics ? epics.find((e) => e.id === epicId) : null
@@ -324,6 +406,127 @@ export default function ItemModal({ item, epics, onClose, onUpdate }: Props) {
                   </button>
                 </>
               )}
+            </div>
+
+            {/* Linked Items */}
+            <div>
+              <label className="block text-xs font-semibold text-taupe uppercase tracking-wider mb-2">
+                Linked Items {links.length > 0 && `(${links.length})`}
+              </label>
+              {links.length > 0 && (
+                <div className="space-y-1.5 mb-3">
+                  {links.map((link) => {
+                    const resolved = resolveLinkedItem(link)
+                    if (!resolved) return null
+                    return (
+                      <div key={link.id} className="flex items-center gap-2 px-3 py-2 bg-cream rounded-lg group">
+                        <span
+                          className="px-2 py-0.5 rounded text-[10px] font-semibold text-white shrink-0"
+                          style={{ backgroundColor: resolved.color }}
+                        >
+                          {resolved.type.toUpperCase()}
+                        </span>
+                        <span className="text-sm text-near-black flex-1 truncate">{resolved.title}</span>
+                        <button
+                          onClick={() => handleRemoveLink(link.id)}
+                          className="text-taupe hover:text-red-500 transition cursor-pointer opacity-0 group-hover:opacity-100 shrink-0"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              {!loadingDetails && linkableItems.length > 0 && (
+                <form onSubmit={handleAddLink} className="flex gap-2">
+                  <select
+                    value={linkTarget}
+                    onChange={(e) => setLinkTarget(e.target.value)}
+                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-taupe-light bg-cream-light text-near-black focus:outline-none focus:ring-2 focus:ring-navy"
+                  >
+                    <option value="">Link an item...</option>
+                    {epics?.filter((e) => e.id !== item.id).length! > 0 && (
+                      <optgroup label="Epics">
+                        {epics?.filter((e) => e.id !== item.id).map((e) => (
+                          <option key={e.id} value={`epic:${e.id}`}>{e.title}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {epics?.map((e) => {
+                      const stories = e.stories.filter((s) => s.id !== item.id)
+                      if (stories.length === 0) return null
+                      return (
+                        <optgroup key={e.id} label={e.title}>
+                          {stories.map((s) => (
+                            <option key={s.id} value={`story:${s.id}`}>{s.title}</option>
+                          ))}
+                        </optgroup>
+                      )
+                    })}
+                  </select>
+                  <button
+                    type="submit"
+                    disabled={!linkTarget}
+                    className="px-3 py-2 text-sm bg-navy text-cream-light rounded-lg hover:bg-navy-light transition cursor-pointer disabled:opacity-30"
+                  >
+                    Link
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* Comments */}
+            <div>
+              <label className="block text-xs font-semibold text-taupe uppercase tracking-wider mb-2">
+                Comments {comments.length > 0 && `(${comments.length})`}
+              </label>
+              {comments.length > 0 && (
+                <div className="space-y-3 mb-3">
+                  {comments.map((comment) => (
+                    <div key={comment.id} className="group">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-6 h-6 rounded-full bg-green text-white flex items-center justify-center text-[10px] font-bold shrink-0">
+                          {comment.author[0]}
+                        </div>
+                        <span className="text-xs font-semibold text-near-black">{comment.author}</span>
+                        <span className="text-[10px] text-taupe">
+                          {new Date(comment.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {comment.author === currentUser && (
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="text-taupe hover:text-red-500 transition cursor-pointer opacity-0 group-hover:opacity-100 ml-auto"
+                          >
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-sm text-near-black leading-relaxed pl-8 whitespace-pre-wrap">{comment.content}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <form onSubmit={handlePostComment} className="space-y-2">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Add a comment..."
+                  rows={2}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-taupe-light bg-cream-light text-near-black focus:outline-none focus:ring-2 focus:ring-navy placeholder:text-taupe resize-none"
+                />
+                <button
+                  type="submit"
+                  disabled={!newComment.trim() || postingComment}
+                  className="px-3 py-1.5 text-sm bg-navy text-cream-light rounded-lg hover:bg-navy-light transition cursor-pointer disabled:opacity-30"
+                >
+                  {postingComment ? 'Posting...' : 'Comment'}
+                </button>
+              </form>
             </div>
 
             {/* Stories list for Epics */}

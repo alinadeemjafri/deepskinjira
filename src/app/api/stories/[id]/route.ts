@@ -3,12 +3,18 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const story = await prisma.story.findUnique({
-    where: { id },
-    include: { epic: true, attachments: true, subtasks: { orderBy: { order: 'asc' } } },
-  })
+  const [story, links] = await Promise.all([
+    prisma.story.findUnique({
+      where: { id },
+      include: { epic: true, attachments: true, subtasks: { orderBy: { order: 'asc' } }, comments: { orderBy: { createdAt: 'asc' } } },
+    }),
+    prisma.itemLink.findMany({
+      where: { OR: [{ sourceId: id }, { targetId: id }] },
+      orderBy: { createdAt: 'asc' },
+    }),
+  ])
   if (!story) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(story)
+  return NextResponse.json({ ...story, links })
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

@@ -12,6 +12,24 @@ export interface Attachment {
   createdAt: string
 }
 
+export interface Comment {
+  id: string
+  content: string
+  author: string
+  epicId: string | null
+  storyId: string | null
+  createdAt: string
+}
+
+export interface ItemLink {
+  id: string
+  sourceType: string
+  sourceId: string
+  targetType: string
+  targetId: string
+  createdAt: string
+}
+
 export interface SubTask {
   id: string
   title: string
@@ -37,6 +55,8 @@ export interface Story {
   createdAt: string
   updatedAt: string
   attachments?: Attachment[]
+  comments?: Comment[]
+  links?: ItemLink[]
 }
 
 export interface Epic {
@@ -54,6 +74,8 @@ export interface Epic {
   updatedAt: string
   stories: Story[]
   attachments?: Attachment[]
+  comments?: Comment[]
+  links?: ItemLink[]
 }
 
 export const STATUS_LABELS: Record<Status, string> = {
